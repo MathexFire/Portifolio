@@ -55,12 +55,21 @@
     background:var(--panel); border:1px solid var(--line); border-radius:4px;
     overflow:hidden; display:flex; flex-direction:column;
   }
-  .frame{position:relative; aspect-ratio:16/9; background:#000;}
+  .frame{position:relative; aspect-ratio:16/9; background:#000; cursor:pointer; overflow:hidden;}
   .frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  .frame img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
+  .play-btn{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:56px; height:56px; border-radius:50%;
+    background:rgba(19,19,16,.72); border:1px solid rgba(239,234,224,.4);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent); font-size:1.2rem; transition:transform .15s ease, background .15s ease;
+  }
+  .frame:hover .play-btn{transform:translate(-50%,-50%) scale(1.08); background:rgba(19,19,16,.9);}
   .placeholder{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     flex-direction:column; gap:8px; color:var(--ink-dim); font-size:.8rem; text-align:center; padding:16px;
-    border:1px dashed var(--line);
+    border:1px dashed var(--line); cursor:default;
   }
   .placeholder .play{font-size:1.6rem; color:var(--accent);}
   .card .meta{padding:14px 16px;}
@@ -99,11 +108,11 @@
     <div class="grid">
 
       <div class="card">
-        <div class="frame">
-          <!-- Troque o div .placeholder por um iframe do YouTube (vídeo "Não listado") -->
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/ETRIfs-7z9g?si=0i-HWnd5hzx0lSB8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <div class="frame" data-video="ETRIfs-7z9g">
+          <img src="https://img.youtube.com/vi/ETRIfs-7z9g/hqdefault.jpg" alt="Pitch segundo trimestre">
+          <div class="play-btn">▶</div>
         </div>
-        <div class="meta"><p class="tag">Pitch</p><p class="title">A Muralha Suiça</p></div>
+        <div class="meta"><p class="tag">Documentário</p><p class="title">Nome do vídeo</p></div>
       </div>
 
       <div class="card">
@@ -146,5 +155,13 @@
   <footer>Portfólio pessoal — vídeos hospedados como "não listado", sem opção de download.</footer>
 
 </div>
+<script>
+  document.querySelectorAll('.frame[data-video]').forEach(function(frame){
+    frame.addEventListener('click', function(){
+      var id = frame.getAttribute('data-video');
+      frame.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+    });
+  });
+</script>
 </body>
 </html>
