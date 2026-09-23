@@ -97,10 +97,12 @@
   }
   .day.livre{border-left-color:#4a9d6e;}
   .day.ocupado{border-left-color:var(--accent-2);}
+  .day.editando{border-left-color:var(--accent);}
   .day-name{font-weight:600; min-width:90px;}
   .day-status{font-size:.85rem; color:var(--ink-dim);}
   .day.livre .day-status{color:#4a9d6e;}
   .day.ocupado .day-status{color:var(--accent-2);}
+  .day.editando .day-status{color:var(--accent);}
   .day-hours{font-size:.85rem; color:var(--ink); background:rgba(74,157,110,.12); padding:2px 8px; border-radius:3px;}
   .day-note{font-size:.85rem; color:var(--ink-dim); margin-left:auto;}
 </style>
@@ -142,7 +144,6 @@
   <section id="contato" class="contact">
     <h2>Contato</h2>
     <div class="row" id="contact-row">
-      <a href="tel:+5549988967292" id="contact-tel">(49) 9 8896-7292</a>
       <a href="https://instagram.com/Mathex.rz" target="_blank" rel="noopener" id="contact-insta">@Mathex.rz</a>
       <a href="mailto:" id="contact-email" style="display:none;">Enviar email</a>
     </div>
@@ -204,12 +205,6 @@
     if (cfg.sobre) document.getElementById("site-sobre").textContent = cfg.sobre;
     if (cfg.cor_destaque) document.documentElement.style.setProperty("--accent", cfg.cor_destaque);
     if (cfg.cor_destaque2) document.documentElement.style.setProperty("--accent-2", cfg.cor_destaque2);
-    if (cfg.telefone){
-      var telDigits = cfg.telefone.replace(/\D/g, "");
-      var telEl = document.getElementById("contact-tel");
-      telEl.href = "tel:+" + telDigits;
-      telEl.textContent = cfg.telefone;
-    }
     if (cfg.instagram){
       var instaEl = document.getElementById("contact-insta");
       instaEl.href = "https://instagram.com/" + cfg.instagram;
@@ -254,12 +249,15 @@
     wrap.innerHTML = "";
     rows.forEach(function(d){
       if (!d.dia) return;
-      var livre = (d.status || "").toLowerCase().indexOf("livre") === 0;
+      var statusRaw = (d.status || "").trim();
+      var statusKey = statusRaw.toLowerCase();
+      var livre = statusKey === "livre";
       var item = document.createElement("div");
-      item.className = "day " + (livre ? "livre" : "ocupado");
+      item.className = "day " + statusKey;
+      var label = statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1);
       item.innerHTML =
         '<span class="day-name">' + d.dia + '</span>' +
-        '<span class="day-status">' + (livre ? "Livre" : "Ocupado") + '</span>' +
+        '<span class="day-status">' + label + '</span>' +
         (livre && d.horarios ? '<span class="day-hours">' + d.horarios + '</span>' : "") +
         (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "");
       wrap.appendChild(item);
