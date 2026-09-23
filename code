@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matheus — Edição de Vídeo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    --bg:#131310; --panel:#1b1a16; --line:#33312a;
+    --ink:#efeae0; --ink-dim:#a39d8c;
+    --accent:#e0a233; --accent-2:#b6482f;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f4f1ea; --panel:#ffffff; --line:#ddd6c6;
+      --ink:#1c1a15; --ink-dim:#6b6558;
+      --accent:#b6482f; --accent-2:#e0a233;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131310; --panel:#1b1a16; --line:#33312a;
+    --ink:#efeae0; --ink-dim:#a39d8c;
+    --accent:#e0a233; --accent-2:#b6482f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; line-height:1.5;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px;}
+  header{padding:72px 0 40px;}
+  .eyebrow{color:var(--accent); font-family:'Inter',sans-serif; font-weight:600; font-size:.85rem; letter-spacing:.02em; margin:0 0 10px;}
+  h1{
+    font-family:'Bebas Neue',sans-serif; font-weight:400;
+    font-size:clamp(3rem,11vw,5.5rem); line-height:.92; margin:0 0 18px;
+    letter-spacing:.01em;
+  }
+  header p{max-width:46ch; color:var(--ink-dim); font-size:1.05rem; margin:0;}
+  nav{display:flex; gap:22px; margin-top:32px; flex-wrap:wrap;}
+  nav a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); padding-bottom:3px; font-size:.95rem;}
+  nav a:hover{border-color:var(--accent); color:var(--accent);}
+
+  section{padding:52px 0; border-top:1px solid var(--line);}
+  h2{font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:2rem; margin:0 0 28px; letter-spacing:.01em;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:4px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .frame{position:relative; aspect-ratio:16/9; background:#000;}
+  .frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  .placeholder{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px; color:var(--ink-dim); font-size:.8rem; text-align:center; padding:16px;
+    border:1px dashed var(--line);
+  }
+  .placeholder .play{font-size:1.6rem; color:var(--accent);}
+  .card .meta{padding:14px 16px;}
+  .card .meta .tag{font-size:.78rem; color:var(--accent); margin:0 0 4px;}
+  .card .meta .title{font-size:.95rem; margin:0; color:var(--ink);}
+
+  .about p{max-width:62ch; color:var(--ink-dim); font-size:1rem;}
+  .about strong{color:var(--ink); font-weight:600;}
+
+  .contact .row{display:flex; flex-wrap:wrap; gap:14px 28px; margin-top:6px;}
+  .contact a{
+    color:var(--ink); text-decoration:none; font-size:1rem;
+    border-bottom:1px solid var(--line); padding-bottom:2px;
+  }
+  .contact a:hover{color:var(--accent); border-color:var(--accent);}
+
+  footer{padding:36px 0 60px; color:var(--ink-dim); font-size:.8rem; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Edição de vídeo</p>
+    <h1>Matheus<br>edita seus vídeos.</h1>
+    <p>Roteiro, captação e edição para trabalhos escolares e projetos pessoais — feito em Xanxerê, entregue rápido.</p>
+    <nav>
+      <a href="#trabalhos">Trabalhos</a>
+      <a href="#sobre">Sobre</a>
+      <a href="#contato">Contato</a>
+    </nav>
+  </header>
+
+  <section id="trabalhos">
+    <h2>Trabalhos</h2>
+    <div class="grid">
+
+      <div class="card">
+        <div class="frame">
+          <!-- Troque o div .placeholder por um iframe do YouTube (vídeo "Não listado") -->
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/ETRIfs-7z9g?si=0i-HWnd5hzx0lSB8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <div class="meta"><p class="tag">Pitch</p><p class="title">A Muralha Suiça</p></div>
+      </div>
+
+      <div class="card">
+        <div class="frame">
+          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 2</div>
+        </div>
+        <div class="meta"><p class="tag">Trabalho escolar</p><p class="title">Nome do vídeo</p></div>
+      </div>
+
+      <div class="card">
+        <div class="frame">
+          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 3</div>
+        </div>
+        <div class="meta"><p class="tag">Trabalho escolar</p><p class="title">Nome do vídeo</p></div>
+      </div>
+
+      <div class="card">
+        <div class="frame">
+          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 4</div>
+        </div>
+        <div class="meta"><p class="tag">Pessoal</p><p class="title">Nome do vídeo</p></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="sobre" class="about">
+    <h2>Sobre</h2>
+    <p>Faço edição de vídeo há um bom tempo, migrando do Premiere pro <strong>DaVinci Resolve</strong>. Hoje monto vídeos pra colegas do colégio — de trabalhos escolares a documentários — cuidando de roteiro, gravação e pós-produção.</p>
+  </section>
+
+  <section id="contato" class="contact">
+    <h2>Contato</h2>
+    <div class="row">
+      <a href="tel:+5549988967292">(49) 9 8896-7292</a>
+      <a href="https://instagram.com/Mathex.rz" target="_blank" rel="noopener">@Mathex.rz</a>
+    </div>
+  </section>
+
+  <footer>Portfólio pessoal — vídeos hospedados como "não listado", sem opção de download.</footer>
+
+</div>
+</body>
+</html>
