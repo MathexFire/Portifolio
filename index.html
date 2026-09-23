@@ -87,6 +87,21 @@
   .contact a:hover{color:var(--accent); border-color:var(--accent);}
 
   footer{padding:36px 0 60px; color:var(--ink-dim); font-size:.8rem; border-top:1px solid var(--line);}
+
+  .loading{color:var(--ink-dim); font-size:.9rem;}
+  .days{display:grid; gap:10px;}
+  .day{
+    display:flex; align-items:center; gap:14px; padding:12px 16px;
+    background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--line); border-radius:4px;
+    flex-wrap:wrap;
+  }
+  .day.livre{border-left-color:#4a9d6e;}
+  .day.ocupado{border-left-color:var(--accent-2);}
+  .day-name{font-weight:600; min-width:90px;}
+  .day-status{font-size:.85rem; color:var(--ink-dim);}
+  .day.livre .day-status{color:#4a9d6e;}
+  .day.ocupado .day-status{color:var(--accent-2);}
+  .day-note{font-size:.85rem; color:var(--ink-dim); margin-left:auto;}
 </style>
 </head>
 <body>
@@ -94,54 +109,33 @@
 
   <header>
     <p class="eyebrow">Edição de vídeo</p>
-    <h1>Matheus<br>edita seus vídeos.</h1>
-    <p>Roteiro, captação e edição para trabalhos escolares e projetos pessoais — feito em Xanxerê, entregue rápido.</p>
+    <h1 id="site-title">Matheus<br>edita seus vídeos.</h1>
+    <p id="site-tagline">Roteiro, captação e edição para trabalhos escolares e projetos pessoais — feito em Xanxerê, entregue rápido.</p>
     <nav>
       <a href="#trabalhos">Trabalhos</a>
       <a href="#sobre">Sobre</a>
+      <a href="#agenda">Agenda</a>
       <a href="#contato">Contato</a>
     </nav>
   </header>
 
   <section id="trabalhos">
     <h2>Trabalhos</h2>
-    <div class="grid">
-
-      <div class="card">
-        <div class="frame" data-video="ETRIfs-7z9g">
-          <img src="https://img.youtube.com/vi/ETRIfs-7z9g/hqdefault.jpg" alt="Pitch segundo trimestre">
-          <div class="play-btn">▶</div>
-        </div>
-        <div class="meta"><p class="tag">Documentário</p><p class="title">Nome do vídeo</p></div>
-      </div>
-
-      <div class="card">
-        <div class="frame">
-          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 2</div>
-        </div>
-        <div class="meta"><p class="tag">Trabalho escolar</p><p class="title">Nome do vídeo</p></div>
-      </div>
-
-      <div class="card">
-        <div class="frame">
-          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 3</div>
-        </div>
-        <div class="meta"><p class="tag">Trabalho escolar</p><p class="title">Nome do vídeo</p></div>
-      </div>
-
-      <div class="card">
-        <div class="frame">
-          <div class="placeholder"><span class="play">▶</span>Cole aqui o embed do vídeo 4</div>
-        </div>
-        <div class="meta"><p class="tag">Pessoal</p><p class="title">Nome do vídeo</p></div>
-      </div>
-
+    <div class="grid" id="videos-grid">
+      <p class="loading">Carregando vídeos…</p>
     </div>
   </section>
 
   <section id="sobre" class="about">
     <h2>Sobre</h2>
-    <p>Faço edição de vídeo há um bom tempo, migrando do Premiere pro <strong>DaVinci Resolve</strong>. Hoje monto vídeos pra colegas do colégio — de trabalhos escolares a documentários — cuidando de roteiro, gravação e pós-produção.</p>
+    <p id="site-sobre">Faço edição de vídeo há um bom tempo, migrando do Premiere pro <strong>DaVinci Resolve</strong>. Hoje monto vídeos pra colegas do colégio — de trabalhos escolares a documentários — cuidando de roteiro, gravação e pós-produção.</p>
+  </section>
+
+  <section id="agenda" class="agenda">
+    <h2>Agenda</h2>
+    <div class="days" id="agenda-days">
+      <p class="loading">Carregando agenda…</p>
+    </div>
   </section>
 
   <section id="contato" class="contact">
@@ -149,6 +143,7 @@
     <div class="row">
       <a href="tel:+5549988967292">(49) 9 8896-7292</a>
       <a href="https://instagram.com/Mathex.rz" target="_blank" rel="noopener">@Mathex.rz</a>
+      <a href="mailto:">Enviar email</a>
     </div>
   </section>
 
@@ -156,11 +151,103 @@
 
 </div>
 <script>
-  document.querySelectorAll('.frame[data-video]').forEach(function(frame){
-    frame.addEventListener('click', function(){
-      var id = frame.getAttribute('data-video');
-      frame.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+  var SHEET_ID = "2PACX-1vT8FVSX83h37nVS8eyp7muHm5D2gllQBzO4W4ljNc6wOJQyo3ooTRG8nV3NAPVqzUr4NavXz5MFDrUc";
+  var CSV_VIDEOS = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=0&single=true&output=csv";
+  var CSV_CONFIG = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=2064710317&single=true&output=csv";
+  var CSV_AGENDA = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=2106603686&single=true&output=csv";
+
+  function parseCSV(text){
+    var rows = [];
+    var row = [];
+    var cell = "";
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i+1] === '"'){ cell += '"'; i++; } else { inQuotes = false; }
+        } else { cell += c; }
+      } else {
+        if (c === '"'){ inQuotes = true; }
+        else if (c === ','){ row.push(cell); cell = ""; }
+        else if (c === '\n' || c === '\r'){
+          if (c === '\r' && text[i+1] === '\n') i++;
+          row.push(cell); cell = "";
+          if (row.length > 1 || row[0] !== ""){ rows.push(row); }
+          row = [];
+        } else { cell += c; }
+      }
+    }
+    if (cell !== "" || row.length){ row.push(cell); rows.push(row); }
+    var headers = (rows.shift() || []).map(function(h){ return h.trim(); });
+    return rows.map(function(r){
+      var obj = {};
+      headers.forEach(function(h, idx){ obj[h] = (r[idx] || "").trim(); });
+      return obj;
     });
+  }
+
+  function fetchCSV(url){
+    return fetch(url).then(function(res){
+      if (!res.ok) throw new Error("fetch failed");
+      return res.text();
+    }).then(parseCSV);
+  }
+
+  // Config: título, tagline, sobre, cores
+  fetchCSV(CSV_CONFIG).then(function(rows){
+    var cfg = {};
+    rows.forEach(function(r){ cfg[r.chave] = r.valor; });
+    if (cfg.titulo_site) document.getElementById("site-title").innerHTML = cfg.titulo_site;
+    if (cfg.tagline) document.getElementById("site-tagline").textContent = cfg.tagline;
+    if (cfg.sobre) document.getElementById("site-sobre").textContent = cfg.sobre;
+    if (cfg.cor_destaque) document.documentElement.style.setProperty("--accent", cfg.cor_destaque);
+    if (cfg.cor_destaque2) document.documentElement.style.setProperty("--accent-2", cfg.cor_destaque2);
+  }).catch(function(){ /* mantém os textos padrão se a planilha falhar */ });
+
+  // Vídeos
+  fetchCSV(CSV_VIDEOS).then(function(rows){
+    var grid = document.getElementById("videos-grid");
+    grid.innerHTML = "";
+    rows.forEach(function(v){
+      if (!v.id_youtube) return;
+      var card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =
+        '<div class="frame" data-video="' + v.id_youtube + '">' +
+          '<img src="https://img.youtube.com/vi/' + v.id_youtube + '/hqdefault.jpg" alt="' + (v.titulo || "") + '">' +
+          '<div class="play-btn">▶</div>' +
+        '</div>' +
+        '<div class="meta"><p class="tag">' + (v.categoria || "") + '</p><p class="title">' + (v.titulo || "") + '</p></div>';
+      grid.appendChild(card);
+    });
+    grid.querySelectorAll('.frame[data-video]').forEach(function(frame){
+      frame.addEventListener('click', function(){
+        var id = frame.getAttribute('data-video');
+        frame.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+      });
+    });
+  }).catch(function(){
+    document.getElementById("videos-grid").innerHTML = '<p class="loading">Não consegui carregar os vídeos da planilha.</p>';
+  });
+
+  // Agenda
+  fetchCSV(CSV_AGENDA).then(function(rows){
+    var wrap = document.getElementById("agenda-days");
+    wrap.innerHTML = "";
+    rows.forEach(function(d){
+      if (!d.dia) return;
+      var livre = (d.status || "").toLowerCase().indexOf("livre") === 0;
+      var item = document.createElement("div");
+      item.className = "day " + (livre ? "livre" : "ocupado");
+      item.innerHTML =
+        '<span class="day-name">' + d.dia + '</span>' +
+        '<span class="day-status">' + (livre ? "Livre" : "Ocupado") + '</span>' +
+        (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "");
+      wrap.appendChild(item);
+    });
+  }).catch(function(){
+    document.getElementById("agenda-days").innerHTML = '<p class="loading">Não consegui carregar a agenda.</p>';
   });
 </script>
 </body>
