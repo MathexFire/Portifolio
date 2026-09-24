@@ -351,8 +351,8 @@
         var mostrarToast = function(){
           var toast = document.getElementById("toast");
           toast.classList.add("show");
-          setTimeout(function(){ toast.classList.remove("show"); }, 1800);
-          setTimeout(abrirInsta, 1200);
+          setTimeout(function(){ toast.classList.remove("show"); }, 2000);
+          setTimeout(abrirInsta, 1600);
         };
         if (navigator.clipboard && navigator.clipboard.writeText){
           navigator.clipboard.writeText(msg).then(mostrarToast).catch(function(){
