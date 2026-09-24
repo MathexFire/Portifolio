@@ -49,10 +49,19 @@
   header p{max-width:46ch; color:var(--ink-dim); font-size:1.05rem; margin:0;}
   nav{display:flex; gap:22px; margin-top:32px; flex-wrap:wrap;}
   nav a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); padding-bottom:3px; font-size:.95rem; font-family:var(--font-small);}
-  nav a:hover{border-color:var(--accent); color:var(--accent);}
+  nav a:hover{border-color:var(--accent-2); color:var(--accent-2);}
 
   section{padding:52px 0; border-top:1px solid var(--line);}
   h2{font-family:var(--font-heading); font-weight:400; font-size:2rem; margin:0 0 28px; letter-spacing:.01em;}
+
+  .hero-video{
+    position:relative; width:100%; aspect-ratio:16/9; max-width:760px; margin:0 auto 40px;
+    border:3px solid var(--accent-2); border-radius:8px; overflow:hidden; background:#000; cursor:pointer;
+  }
+  .hero-video video{width:100%; height:100%; object-fit:cover; display:block;}
+  .hero-video .play-btn{width:72px; height:72px; font-size:1.6rem;}
+  .hero-video.playing .play-btn{display:none;}
+  .hero-caption{text-align:center; color:var(--ink-dim); font-size:.9rem; margin:-28px auto 40px; max-width:760px;}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px;}
   .card{
@@ -88,7 +97,7 @@
     color:var(--ink); text-decoration:none; font-size:1rem; font-family:var(--font-small);
     border-bottom:1px solid var(--line); padding-bottom:2px;
   }
-  .contact a:hover{color:var(--accent); border-color:var(--accent);}
+  .contact a:hover{color:var(--accent-2); border-color:var(--accent-2);}
 
   footer{padding:36px 0 60px; color:var(--ink-dim); font-size:.8rem; border-top:1px solid var(--line);}
 
@@ -109,6 +118,24 @@
   .day.editando .day-status{color:var(--agenda-editando);}
   .day-hours{font-size:.85rem; color:var(--ink); background:rgba(74,157,110,.12); padding:2px 8px; border-radius:3px;}
   .day-note{font-size:.85rem; color:var(--ink-dim); margin-left:auto;}
+  .day-reservar{
+    margin-left:auto; background:none; border:1px solid var(--accent-2); color:var(--accent-2);
+    font-family:var(--font-small); font-size:.82rem; padding:6px 14px; border-radius:3px; cursor:pointer;
+  }
+  .day-reservar:hover{background:var(--accent-2); color:var(--bg);}
+
+  .toast{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.72); z-index:999; padding:24px; text-align:center;
+  }
+  .toast.show{display:flex;}
+  .toast-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:40px 32px; max-width:360px;
+  }
+  .toast-box .icon{font-size:2.2rem; margin-bottom:12px;}
+  .toast-box .msg{font-family:var(--font-heading); font-size:1.7rem; color:var(--ink); margin:0 0 8px;}
+  .toast-box .sub{font-family:var(--font-small); font-size:.9rem; color:var(--ink-dim); margin:0;}
 </style>
 </head>
 <body>
@@ -125,6 +152,14 @@
       <a href="#contato">Contato</a>
     </nav>
   </header>
+
+  <div id="hero-video-wrap" style="display:none;">
+    <div class="hero-video" id="hero-video">
+      <video id="hero-video-el" playsinline preload="metadata"></video>
+      <div class="play-btn">▶</div>
+    </div>
+    <p class="hero-caption" id="hero-caption"></p>
+  </div>
 
   <section id="trabalhos">
     <h2>Trabalhos</h2>
@@ -156,11 +191,20 @@
   <footer>Portfólio pessoal — vídeos hospedados como "não listado", sem opção de download.</footer>
 
 </div>
+
+<div class="toast" id="toast">
+  <div class="toast-box">
+    <div class="icon">📋</div>
+    <p class="msg">Mensagem copiada!</p>
+    <p class="sub">Abrindo o Instagram — é só colar na conversa.</p>
+  </div>
+</div>
 <script>
   var SHEET_ID = "2PACX-1vT8FVSX83h37nVS8eyp7muHm5D2gllQBzO4W4ljNc6wOJQyo3ooTRG8nV3NAPVqzUr4NavXz5MFDrUc";
   var CSV_VIDEOS = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=0&single=true&output=csv";
   var CSV_CONFIG = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=2064710317&single=true&output=csv";
   var CSV_AGENDA = "https://docs.google.com/spreadsheets/d/e/" + SHEET_ID + "/pub?gid=2106603686&single=true&output=csv";
+  var INSTAGRAM_HANDLE = "Mathex.rz";
 
   function parseCSV(text){
     var rows = [];
@@ -223,6 +267,7 @@
     if (cfg.fonte2) document.documentElement.style.setProperty("--font-body", loadGoogleFont(cfg.fonte2));
     if (cfg.fonte3) document.documentElement.style.setProperty("--font-small", loadGoogleFont(cfg.fonte3));
     if (cfg.instagram){
+      INSTAGRAM_HANDLE = cfg.instagram;
       var instaEl = document.getElementById("contact-insta");
       instaEl.href = "https://instagram.com/" + cfg.instagram;
       instaEl.textContent = "@" + cfg.instagram;
@@ -231,6 +276,21 @@
       var emailEl = document.getElementById("contact-email");
       emailEl.href = "mailto:" + cfg.email;
       emailEl.style.display = "";
+    }
+    if (cfg.video_principal){
+      var heroWrap = document.getElementById("hero-video-wrap");
+      var heroFrame = document.getElementById("hero-video");
+      var heroEl = document.getElementById("hero-video-el");
+      heroEl.src = cfg.video_principal;
+      heroWrap.style.display = "";
+      if (cfg.video_principal_titulo){
+        document.getElementById("hero-caption").textContent = cfg.video_principal_titulo;
+      }
+      heroFrame.addEventListener('click', function(){
+        heroEl.controls = true;
+        heroEl.play();
+        heroFrame.classList.add('playing');
+      });
     }
   }).catch(function(){ /* mantém os textos padrão se a planilha falhar */ });
 
@@ -252,7 +312,7 @@
     });
     grid.querySelectorAll('.frame[data-video]').forEach(function(frame){
       frame.addEventListener('click', function(){
-        var id = frame.getAttribute('data-video');a
+        var id = frame.getAttribute('data-video');
         frame.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
       });
     });
@@ -276,8 +336,38 @@
         '<span class="day-name">' + d.dia + '</span>' +
         '<span class="day-status">' + label + '</span>' +
         (livre && d.horarios ? '<span class="day-hours">' + d.horarios + '</span>' : "") +
-        (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "");
+        (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "") +
+        (livre && d.horarios ? '<button class="day-reservar" data-dia="' + d.dia + '" data-horarios="' + d.horarios + '">Reservar horário</button>' : "");
       wrap.appendChild(item);
+    });
+    wrap.querySelectorAll('.day-reservar').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var dia = btn.getAttribute('data-dia');
+        var horarios = btn.getAttribute('data-horarios');
+        var msg = "Oi! Vi no seu portfólio que " + dia + " você tem horário livre (" + horarios + "). Queria reservar um vídeo com você!";
+        var abrirInsta = function(){
+          window.open("https://ig.me/m/" + INSTAGRAM_HANDLE, "_blank");
+        };
+        var mostrarToast = function(){
+          var toast = document.getElementById("toast");
+          toast.classList.add("show");
+          setTimeout(function(){ toast.classList.remove("show"); }, 1800);
+          setTimeout(abrirInsta, 1200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(msg).then(mostrarToast).catch(function(){
+            abrirInsta();
+          });
+        } else {
+          var tmp = document.createElement("textarea");
+          tmp.value = msg;
+          document.body.appendChild(tmp);
+          tmp.select();
+          try { document.execCommand("copy"); } catch(e){}
+          document.body.removeChild(tmp);
+          mostrarToast();
+        }
+      });
     });
   }).catch(function(){
     document.getElementById("agenda-days").innerHTML = '<p class="loading">Não consegui carregar a agenda.</p>';
