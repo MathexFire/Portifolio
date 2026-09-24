@@ -18,7 +18,7 @@
     --font-heading:'Bebas Neue',sans-serif;
     --font-body:'Inter',sans-serif;
     --font-small:'Inter',sans-serif;
-    --agenda-livre:#00B36B; --agenda-ocupado:#B33C00; --agenda-editando:#B37700;
+    --agenda-livre:#4a9d6e; --agenda-ocupado:#c1442e; --agenda-editando:#d99a3b;
   }
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   @media (prefers-color-scheme: light){
@@ -136,6 +136,42 @@
   .toast-box .icon{font-size:2.2rem; margin-bottom:12px;}
   .toast-box .msg{font-family:var(--font-heading); font-size:1.7rem; color:var(--ink); margin:0 0 8px;}
   .toast-box .sub{font-family:var(--font-small); font-size:.9rem; color:var(--ink-dim); margin:0;}
+
+  .modal{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.72); z-index:998; padding:20px;
+  }
+  .modal.show{display:flex;}
+  .modal-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:28px; max-width:420px; width:100%; position:relative; max-height:88vh; overflow-y:auto;
+  }
+  .modal-box h3{font-family:var(--font-heading); font-weight:400; font-size:1.5rem; margin:0 0 12px;}
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:0; color:var(--ink-dim);
+    font-size:1.1rem; cursor:pointer;
+  }
+  .modal-hint{font-size:.85rem; color:var(--ink-dim); margin:0 0 20px;}
+  .modal-hint a{color:var(--accent-2);}
+  .modal-label{font-size:.8rem; color:var(--ink-dim); margin:0 0 8px; font-family:var(--font-small);}
+  .slots{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+  .slot{
+    padding:8px 14px; border-radius:4px; font-size:.9rem; cursor:pointer; border:1px solid;
+    font-family:var(--font-small); background:none;
+  }
+  .slot.livre{border-color:var(--agenda-livre); color:var(--agenda-livre);}
+  .slot.livre.selected{background:var(--agenda-livre); color:#fff;}
+  .slot.ocupado{border-color:var(--agenda-ocupado); color:var(--agenda-ocupado); opacity:.5; cursor:not-allowed;}
+  .modal-input{
+    width:100%; padding:10px 12px; border-radius:4px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:1rem; box-sizing:border-box;
+  }
+  .modal-privacy{font-size:.75rem; color:var(--ink-dim); margin:6px 0 20px;}
+  .modal-confirmar{
+    width:100%; padding:12px; background:var(--accent-2); color:#fff; border:0; border-radius:4px;
+    font-family:var(--font-small); font-size:.95rem; cursor:pointer;
+  }
+  .modal-confirmar:hover{opacity:.9;}
 </style>
 </head>
 <body>
@@ -197,6 +233,23 @@
     <div class="icon">📋</div>
     <p class="msg">Mensagem copiada!</p>
     <p class="sub">Abrindo o Instagram — é só colar na conversa.</p>
+  </div>
+</div>
+
+<div class="modal" id="reserva-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-fechar">✕</button>
+    <h3>Reservar horário — <span id="modal-dia"></span></h3>
+    <p class="modal-hint">Ficou com dúvida sobre os pacotes? <a id="modal-insta" href="#" target="_blank" rel="noopener">Me chama no Instagram antes de reservar</a>.</p>
+
+    <p class="modal-label">Horários disponíveis</p>
+    <div class="slots" id="modal-slots"></div>
+
+    <p class="modal-label">Como você quer ser chamado?</p>
+    <input type="text" id="modal-nome" class="modal-input" placeholder="Seu nome">
+    <p class="modal-privacy">Esse nome vai aparecer publicamente pra quem visitar o site.</p>
+
+    <button class="modal-confirmar" id="modal-confirmar">Confirmar reserva</button>
   </div>
 </div>
 <script>
@@ -292,6 +345,15 @@
         heroFrame.classList.add('playing');
       });
     }
+    if (cfg.forms_url) window.FORMS_URL = cfg.forms_url;
+    if (cfg.forms_entry_nome) window.FORMS_ENTRY_NOME = cfg.forms_entry_nome;
+    if (cfg.forms_entry_dia) window.FORMS_ENTRY_DIA = cfg.forms_entry_dia;
+    if (cfg.forms_entry_horario) window.FORMS_ENTRY_HORARIO = cfg.forms_entry_horario;
+    if (cfg.reservas_csv) window.CSV_RESERVAS = cfg.reservas_csv;
+    if (cfg.instagram){
+      var modalInsta = document.getElementById("modal-insta");
+      if (modalInsta) modalInsta.href = "https://ig.me/m/" + cfg.instagram;
+    }
   }).catch(function(){ /* mantém os textos padrão se a planilha falhar */ });
 
   // Vídeos
@@ -343,34 +405,73 @@
     wrap.querySelectorAll('.day-reservar').forEach(function(btn){
       btn.addEventListener('click', function(){
         var dia = btn.getAttribute('data-dia');
-        var horarios = btn.getAttribute('data-horarios');
-        var msg = "Oi! Vi no seu portfólio que " + dia + " você tem horário livre (" + horarios + "). Queria reservar um vídeo com você!";
-        var abrirInsta = function(){
-          window.open("https://ig.me/m/" + INSTAGRAM_HANDLE, "_blank");
-        };
-        var mostrarToast = function(){
-          var toast = document.getElementById("toast");
-          toast.classList.add("show");
-          setTimeout(function(){ toast.classList.remove("show"); }, 2000);
-          setTimeout(abrirInsta, 1600);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(msg).then(mostrarToast).catch(function(){
-            abrirInsta();
-          });
-        } else {
-          var tmp = document.createElement("textarea");
-          tmp.value = msg;
-          document.body.appendChild(tmp);
-          tmp.select();
-          try { document.execCommand("copy"); } catch(e){}
-          document.body.removeChild(tmp);
-          mostrarToast();
-        }
+        var horarios = btn.getAttribute('data-horarios').split(',').map(function(h){ return h.trim(); }).filter(Boolean);
+        abrirModalReserva(dia, horarios);
       });
     });
   }).catch(function(){
     document.getElementById("agenda-days").innerHTML = '<p class="loading">Não consegui carregar a agenda.</p>';
+  });
+
+  // Reservas já feitas (opcional: lidas das respostas do Google Forms)
+  var reservasFeitas = {};
+  if (window.CSV_RESERVAS){
+    fetchCSV(window.CSV_RESERVAS).then(function(rows){
+      rows.forEach(function(r){
+        if (r.dia && r.horario){
+          reservasFeitas[r.dia.trim() + "|" + r.horario.trim()] = true;
+        }
+      });
+    }).catch(function(){});
+  }
+
+  var slotsSelecionados = [];
+  var diaAtual = "";
+
+  function abrirModalReserva(dia, horarios){
+    diaAtual = dia;
+    slotsSelecionados = [];
+    document.getElementById("modal-dia").textContent = dia;
+    var slotsWrap = document.getElementById("modal-slots");
+    slotsWrap.innerHTML = "";
+    horarios.forEach(function(h){
+      var ocupado = !!reservasFeitas[dia + "|" + h];
+      var slot = document.createElement("button");
+      slot.className = "slot " + (ocupado ? "ocupado" : "livre");
+      slot.textContent = h;
+      slot.disabled = ocupado;
+      if (!ocupado){
+        slot.addEventListener('click', function(){
+          var idx = slotsSelecionados.indexOf(h);
+          if (idx === -1){ slotsSelecionados.push(h); slot.classList.add('selected'); }
+          else { slotsSelecionados.splice(idx, 1); slot.classList.remove('selected'); }
+        });
+      }
+      slotsWrap.appendChild(slot);
+    });
+    document.getElementById("modal-nome").value = "";
+    document.getElementById("reserva-modal").classList.add("show");
+  }
+
+  document.getElementById("modal-fechar").addEventListener('click', function(){
+    document.getElementById("reserva-modal").classList.remove("show");
+  });
+
+  document.getElementById("modal-confirmar").addEventListener('click', function(){
+    var nome = document.getElementById("modal-nome").value.trim();
+    if (!nome){ alert("Digita seu nome pra continuar."); return; }
+    if (!slotsSelecionados.length){ alert("Escolhe pelo menos um horário."); return; }
+    if (!window.FORMS_URL){
+      alert("O formulário de reserva ainda não foi configurado.");
+      return;
+    }
+    var horarioTexto = slotsSelecionados.join(", ");
+    var url = window.FORMS_URL + "?usp=pp_url"
+      + "&" + window.FORMS_ENTRY_NOME + "=" + encodeURIComponent(nome)
+      + "&" + window.FORMS_ENTRY_DIA + "=" + encodeURIComponent(diaAtual)
+      + "&" + window.FORMS_ENTRY_HORARIO + "=" + encodeURIComponent(horarioTexto);
+    window.open(url, "_blank");
+    document.getElementById("reserva-modal").classList.remove("show");
   });
 </script>
 </body>
