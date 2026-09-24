@@ -252,7 +252,7 @@
     });
     grid.querySelectorAll('.frame[data-video]').forEach(function(frame){
       frame.addEventListener('click', function(){
-        var id = frame.getAttribute('data-video');
+        var id = frame.getAttribute('data-video');a
         frame.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
       });
     });
