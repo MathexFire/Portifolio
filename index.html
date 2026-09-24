@@ -15,6 +15,10 @@
     --bg:#131310; --panel:#1b1a16; --line:#33312a;
     --ink:#efeae0; --ink-dim:#a39d8c;
     --accent:#e0a233; --accent-2:#b6482f;
+    --font-heading:'Bebas Neue',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-small:'Inter',sans-serif;
+    --agenda-livre:#4a9d6e; --agenda-ocupado:#c1442e; --agenda-editando:#d99a3b;
   }
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   @media (prefers-color-scheme: light){
@@ -32,23 +36,23 @@
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter',sans-serif; line-height:1.5;
+    font-family:var(--font-body); line-height:1.5;
   }
   .wrap{max-width:920px; margin:0 auto; padding:0 24px;}
   header{padding:72px 0 40px;}
-  .eyebrow{color:var(--accent); font-family:'Inter',sans-serif; font-weight:600; font-size:.85rem; letter-spacing:.02em; margin:0 0 10px;}
+  .eyebrow{color:var(--accent); font-family:var(--font-small); font-weight:600; font-size:.85rem; letter-spacing:.02em; margin:0 0 10px;}
   h1{
-    font-family:'Bebas Neue',sans-serif; font-weight:400;
+    font-family:var(--font-heading); font-weight:400;
     font-size:clamp(3rem,11vw,5.5rem); line-height:.92; margin:0 0 18px;
     letter-spacing:.01em;
   }
   header p{max-width:46ch; color:var(--ink-dim); font-size:1.05rem; margin:0;}
   nav{display:flex; gap:22px; margin-top:32px; flex-wrap:wrap;}
-  nav a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); padding-bottom:3px; font-size:.95rem;}
+  nav a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); padding-bottom:3px; font-size:.95rem; font-family:var(--font-small);}
   nav a:hover{border-color:var(--accent); color:var(--accent);}
 
   section{padding:52px 0; border-top:1px solid var(--line);}
-  h2{font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:2rem; margin:0 0 28px; letter-spacing:.01em;}
+  h2{font-family:var(--font-heading); font-weight:400; font-size:2rem; margin:0 0 28px; letter-spacing:.01em;}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px;}
   .card{
@@ -73,7 +77,7 @@
   }
   .placeholder .play{font-size:1.6rem; color:var(--accent);}
   .card .meta{padding:14px 16px;}
-  .card .meta .tag{font-size:.78rem; color:var(--accent); margin:0 0 4px;}
+  .card .meta .tag{font-size:.78rem; color:var(--accent); margin:0 0 4px; font-family:var(--font-small);}
   .card .meta .title{font-size:.95rem; margin:0; color:var(--ink);}
 
   .about p{max-width:62ch; color:var(--ink-dim); font-size:1rem;}
@@ -81,7 +85,7 @@
 
   .contact .row{display:flex; flex-wrap:wrap; gap:14px 28px; margin-top:6px;}
   .contact a{
-    color:var(--ink); text-decoration:none; font-size:1rem;
+    color:var(--ink); text-decoration:none; font-size:1rem; font-family:var(--font-small);
     border-bottom:1px solid var(--line); padding-bottom:2px;
   }
   .contact a:hover{color:var(--accent); border-color:var(--accent);}
@@ -95,14 +99,14 @@
     background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--line); border-radius:4px;
     flex-wrap:wrap;
   }
-  .day.livre{border-left-color:#4a9d6e;}
-  .day.ocupado{border-left-color:var(--accent-2);}
-  .day.editando{border-left-color:var(--accent);}
+  .day.livre{border-left-color:var(--agenda-livre);}
+  .day.ocupado{border-left-color:var(--agenda-ocupado);}
+  .day.editando{border-left-color:var(--agenda-editando);}
   .day-name{font-weight:600; min-width:90px;}
   .day-status{font-size:.85rem; color:var(--ink-dim);}
-  .day.livre .day-status{color:#4a9d6e;}
-  .day.ocupado .day-status{color:var(--accent-2);}
-  .day.editando .day-status{color:var(--accent);}
+  .day.livre .day-status{color:var(--agenda-livre);}
+  .day.ocupado .day-status{color:var(--agenda-ocupado);}
+  .day.editando .day-status{color:var(--agenda-editando);}
   .day-hours{font-size:.85rem; color:var(--ink); background:rgba(74,157,110,.12); padding:2px 8px; border-radius:3px;}
   .day-note{font-size:.85rem; color:var(--ink-dim); margin-left:auto;}
 </style>
@@ -196,7 +200,16 @@
     }).then(parseCSV);
   }
 
-  // Config: título, tagline, sobre, cores
+  function loadGoogleFont(name){
+    var family = name.trim().replace(/\s+/g, "+");
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=" + family + ":wght@400;600;700&display=swap";
+    document.head.appendChild(link);
+    return "'" + name.trim() + "', sans-serif";
+  }
+
+  // Config: título, tagline, sobre, cores, fundo, fontes
   fetchCSV(CSV_CONFIG).then(function(rows){
     var cfg = {};
     rows.forEach(function(r){ cfg[r.chave] = r.valor; });
@@ -205,6 +218,10 @@
     if (cfg.sobre) document.getElementById("site-sobre").textContent = cfg.sobre;
     if (cfg.cor_destaque) document.documentElement.style.setProperty("--accent", cfg.cor_destaque);
     if (cfg.cor_destaque2) document.documentElement.style.setProperty("--accent-2", cfg.cor_destaque2);
+    if (cfg.fundo) document.documentElement.style.setProperty("--bg", cfg.fundo);
+    if (cfg.fonte1) document.documentElement.style.setProperty("--font-heading", loadGoogleFont(cfg.fonte1));
+    if (cfg.fonte2) document.documentElement.style.setProperty("--font-body", loadGoogleFont(cfg.fonte2));
+    if (cfg.fonte3) document.documentElement.style.setProperty("--font-small", loadGoogleFont(cfg.fonte3));
     if (cfg.instagram){
       var instaEl = document.getElementById("contact-insta");
       instaEl.href = "https://instagram.com/" + cfg.instagram;
