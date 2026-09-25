@@ -353,7 +353,21 @@
       var modalInsta = document.getElementById("modal-insta");
       if (modalInsta) modalInsta.href = "https://ig.me/m/" + cfg.instagram;
     }
-  }).catch(function(){ /* mantém os textos padrão se a planilha falhar */ });
+    return window.CSV_RESERVAS ? fetchCSV(window.CSV_RESERVAS) : Promise.resolve([]);
+  }).catch(function(){ return []; }).then(function(rows){
+    rows.forEach(function(r){
+      var vals = Object.keys(r).map(function(k){ return r[k]; });
+      var combinado = vals[2] || "";
+      var partes = combinado.split(" - ");
+      if (partes.length < 2) return;
+      var dia = partes[0].trim();
+      var horariosResp = partes[1].split(",").map(function(h){ return h.trim(); });
+      horariosResp.forEach(function(h){
+        if (h) reservasFeitas[dia + "|" + h] = true;
+      });
+    });
+    renderAgenda();
+  });
 
   // Vídeos
   fetchCSV(CSV_VIDEOS).then(function(rows){
@@ -382,52 +396,41 @@
   });
 
   // Agenda
-  fetchCSV(CSV_AGENDA).then(function(rows){
-    var wrap = document.getElementById("agenda-days");
-    wrap.innerHTML = "";
-    rows.forEach(function(d){
-      if (!d.dia) return;
-      var statusRaw = (d.status || "").trim();
-      var statusKey = statusRaw.toLowerCase();
-      var livre = statusKey === "livre";
-      var item = document.createElement("div");
-      item.className = "day " + statusKey;
-      var label = statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1);
-      item.innerHTML =
-        '<span class="day-name">' + d.dia + '</span>' +
-        '<span class="day-status">' + label + '</span>' +
-        (livre && d.horarios ? '<span class="day-hours">' + d.horarios + '</span>' : "") +
-        (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "") +
-        (livre && d.horarios ? '<button class="day-reservar" data-dia="' + d.dia + '" data-horarios="' + d.horarios + '">Reservar horário</button>' : "");
-      wrap.appendChild(item);
-    });
-    wrap.querySelectorAll('.day-reservar').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var dia = btn.getAttribute('data-dia');
-        var horarios = btn.getAttribute('data-horarios').split(',').map(function(h){ return h.trim(); }).filter(Boolean);
-        abrirModalReserva(dia, horarios);
-      });
-    });
-  }).catch(function(){
-    document.getElementById("agenda-days").innerHTML = '<p class="loading">Não consegui carregar a agenda.</p>';
-  });
-
-  // Reservas já feitas (opcional: lidas das respostas do Google Forms)
   var reservasFeitas = {};
-  if (window.CSV_RESERVAS){
-    fetchCSV(window.CSV_RESERVAS).then(function(rows){
-      rows.forEach(function(r){
-        var vals = Object.keys(r).map(function(k){ return r[k]; });
-        var combinado = vals[2] || "";
-        var partes = combinado.split(" - ");
-        if (partes.length < 2) return;
-        var dia = partes[0].trim();
-        var horariosResp = partes[1].split(",").map(function(h){ return h.trim(); });
-        horariosResp.forEach(function(h){
-          if (h) reservasFeitas[dia + "|" + h] = true;
+
+  function renderAgenda(){
+    fetchCSV(CSV_AGENDA).then(function(rows){
+      var wrap = document.getElementById("agenda-days");
+      wrap.innerHTML = "";
+      rows.forEach(function(d){
+        if (!d.dia) return;
+        var statusRaw = (d.status || "").trim();
+        var statusKey = statusRaw.toLowerCase();
+        var livre = statusKey === "livre";
+        var todosHorarios = (d.horarios || "").split(",").map(function(h){ return h.trim(); }).filter(Boolean);
+        var disponiveis = livre ? todosHorarios.filter(function(h){ return !reservasFeitas[d.dia + "|" + h]; }) : [];
+        var item = document.createElement("div");
+        item.className = "day " + statusKey;
+        var label = statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1);
+        var hoursText = livre ? (disponiveis.length ? disponiveis.join(", ") : "Sem horários disponíveis") : "";
+        item.innerHTML =
+          '<span class="day-name">' + d.dia + '</span>' +
+          '<span class="day-status">' + label + '</span>' +
+          (livre ? '<span class="day-hours">' + hoursText + '</span>' : "") +
+          (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "") +
+          (disponiveis.length ? '<button class="day-reservar" data-dia="' + d.dia + '" data-horarios="' + disponiveis.join(",") + '">Reservar horário</button>' : "");
+        wrap.appendChild(item);
+      });
+      wrap.querySelectorAll('.day-reservar').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var dia = btn.getAttribute('data-dia');
+          var horarios = btn.getAttribute('data-horarios').split(',').map(function(h){ return h.trim(); }).filter(Boolean);
+          abrirModalReserva(dia, horarios);
         });
       });
-    }).catch(function(){});
+    }).catch(function(){
+      document.getElementById("agenda-days").innerHTML = '<p class="loading">Não consegui carregar a agenda.</p>';
+    });
   }
 
   var slotsSelecionados = [];
