@@ -347,7 +347,6 @@
     }
     if (cfg.forms_url) window.FORMS_URL = cfg.forms_url;
     if (cfg.forms_entry_nome) window.FORMS_ENTRY_NOME = cfg.forms_entry_nome;
-    if (cfg.forms_entry_dia) window.FORMS_ENTRY_DIA = cfg.forms_entry_dia;
     if (cfg.forms_entry_horario) window.FORMS_ENTRY_HORARIO = cfg.forms_entry_horario;
     if (cfg.reservas_csv) window.CSV_RESERVAS = cfg.reservas_csv;
     if (cfg.instagram){
@@ -418,9 +417,15 @@
   if (window.CSV_RESERVAS){
     fetchCSV(window.CSV_RESERVAS).then(function(rows){
       rows.forEach(function(r){
-        if (r.dia && r.horario){
-          reservasFeitas[r.dia.trim() + "|" + r.horario.trim()] = true;
-        }
+        var vals = Object.keys(r).map(function(k){ return r[k]; });
+        var combinado = vals[2] || "";
+        var partes = combinado.split(" - ");
+        if (partes.length < 2) return;
+        var dia = partes[0].trim();
+        var horariosResp = partes[1].split(",").map(function(h){ return h.trim(); });
+        horariosResp.forEach(function(h){
+          if (h) reservasFeitas[dia + "|" + h] = true;
+        });
       });
     }).catch(function(){});
   }
@@ -465,10 +470,9 @@
       alert("O formulário de reserva ainda não foi configurado.");
       return;
     }
-    var horarioTexto = slotsSelecionados.join(", ");
+    var horarioTexto = diaAtual + " - " + slotsSelecionados.join(", ");
     var url = window.FORMS_URL + "?usp=pp_url"
       + "&" + window.FORMS_ENTRY_NOME + "=" + encodeURIComponent(nome)
-      + "&" + window.FORMS_ENTRY_DIA + "=" + encodeURIComponent(diaAtual)
       + "&" + window.FORMS_ENTRY_HORARIO + "=" + encodeURIComponent(horarioTexto);
     window.open(url, "_blank");
     document.getElementById("reserva-modal").classList.remove("show");
