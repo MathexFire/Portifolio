@@ -353,7 +353,7 @@
   }).catch(function(){ return []; }).then(function(rows){
     rows.forEach(function(r){
       var vals = Object.keys(r).map(function(k){ return r[k]; });
-      var combinado = vals[2] || "";
+      var combinado = vals[vals.length - 1] || "";
       var partes = combinado.split(" - ");
       if (partes.length < 2) return;
       var dia = partes[0].trim();
