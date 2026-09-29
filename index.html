@@ -172,6 +172,9 @@
     font-family:var(--font-small); font-size:.95rem; cursor:pointer;
   }
   .modal-confirmar:hover{opacity:.9;}
+  .modal-obrigado-buttons{display:flex; flex-direction:column;}
+  .modal-obrigado-buttons a{text-decoration:none; text-align:center; box-sizing:border-box;}
+  #obrigado-whats{background:#25945a;}
 </style>
 </head>
 <body>
@@ -239,13 +242,26 @@
 <div class="modal" id="reserva-modal">
   <div class="modal-box">
     <button class="modal-close" id="modal-fechar">✕</button>
-    <h3>Reservar horário — <span id="modal-dia"></span></h3>
-    <p class="modal-hint">Ficou com dúvida sobre os pacotes? <a id="modal-insta" href="#" target="_blank" rel="noopener">Me chama no Instagram antes de reservar</a>.</p>
 
-    <p class="modal-label">Horários disponíveis</p>
-    <div class="slots" id="modal-slots"></div>
+    <div id="modal-step-slots">
+      <h3>Reservar horário — <span id="modal-dia"></span></h3>
+      <p class="modal-hint">Ficou com dúvida sobre os pacotes? <a id="modal-insta" href="#" target="_blank" rel="noopener">Me chama no Instagram antes de reservar</a>.</p>
 
-    <button class="modal-confirmar" id="modal-confirmar">Confirmar reserva</button>
+      <p class="modal-label">Horários disponíveis</p>
+      <div class="slots" id="modal-slots"></div>
+
+      <button class="modal-confirmar" id="modal-confirmar">Confirmar reserva</button>
+    </div>
+
+    <div id="modal-step-obrigado" style="display:none;">
+      <h3>Reserva enviada! 🎬</h3>
+      <p class="modal-hint">Termina de confirmar o envio na aba que abriu. Se quiser já ir combinando os detalhes comigo:</p>
+      <div class="modal-obrigado-buttons">
+        <a id="obrigado-insta" href="#" target="_blank" rel="noopener" class="modal-confirmar">Chamar no Instagram</a>
+        <a id="obrigado-whats" href="#" target="_blank" rel="noopener" class="modal-confirmar" style="display:none; margin-top:10px;">Chamar no WhatsApp</a>
+      </div>
+    </div>
+
   </div>
 </div>
 <script>
@@ -348,6 +364,16 @@
     if (cfg.instagram){
       var modalInsta = document.getElementById("modal-insta");
       if (modalInsta) modalInsta.href = "https://ig.me/m/" + cfg.instagram;
+      var obrigadoInsta = document.getElementById("obrigado-insta");
+      if (obrigadoInsta) obrigadoInsta.href = "https://ig.me/m/" + cfg.instagram;
+    }
+    if (cfg.telefone){
+      var digits = cfg.telefone.replace(/\D/g, "");
+      var obrigadoWhats = document.getElementById("obrigado-whats");
+      if (obrigadoWhats){
+        obrigadoWhats.href = "https://wa.me/" + digits;
+        obrigadoWhats.style.display = "";
+      }
     }
     return window.CSV_RESERVAS ? fetchCSV(window.CSV_RESERVAS) : Promise.resolve([]);
   }).catch(function(){ return []; }).then(function(rows){
@@ -473,6 +499,8 @@
       }
       slotsWrap.appendChild(slot);
     });
+    document.getElementById("modal-step-slots").style.display = "";
+    document.getElementById("modal-step-obrigado").style.display = "none";
     document.getElementById("reserva-modal").classList.add("show");
   }
 
@@ -490,7 +518,8 @@
     var url = window.FORMS_URL + "?usp=pp_url"
       + "&" + window.FORMS_ENTRY_HORARIO + "=" + encodeURIComponent(horarioTexto);
     window.open(url, "_blank");
-    document.getElementById("reserva-modal").classList.remove("show");
+    document.getElementById("modal-step-slots").style.display = "none";
+    document.getElementById("modal-step-obrigado").style.display = "";
   });
 </script>
 </body>
