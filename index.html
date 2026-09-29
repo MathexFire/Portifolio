@@ -245,10 +245,6 @@
     <p class="modal-label">Horários disponíveis</p>
     <div class="slots" id="modal-slots"></div>
 
-    <p class="modal-label">Como você quer ser chamado?</p>
-    <input type="text" id="modal-nome" class="modal-input" placeholder="Seu nome">
-    <p class="modal-privacy">Esse nome vai aparecer publicamente pra quem visitar o site.</p>
-
     <button class="modal-confirmar" id="modal-confirmar">Confirmar reserva</button>
   </div>
 </div>
@@ -397,13 +393,32 @@
 
   // Agenda
   var reservasFeitas = {};
+  var DIAS_SEMANA = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+
+  function parseDataBR(str){
+    var partes = (str || "").split("/");
+    if (partes.length !== 3) return null;
+    var d = parseInt(partes[0], 10), m = parseInt(partes[1], 10), y = parseInt(partes[2], 10);
+    if (!d || !m || !y) return null;
+    return new Date(y, m - 1, d);
+  }
 
   function renderAgenda(){
     fetchCSV(CSV_AGENDA).then(function(rows){
       var wrap = document.getElementById("agenda-days");
       wrap.innerHTML = "";
-      rows.forEach(function(d){
-        if (!d.dia) return;
+      var hoje = new Date();
+      hoje.setHours(0,0,0,0);
+
+      var linhas = rows.map(function(d){
+        var data = parseDataBR(d.dia);
+        return { d: d, data: data };
+      }).filter(function(x){
+        return x.data && x.data >= hoje;
+      }).sort(function(a, b){ return a.data - b.data; });
+
+      linhas.forEach(function(x){
+        var d = x.d;
         var statusRaw = (d.status || "").trim();
         var statusKey = statusRaw.toLowerCase();
         var livre = statusKey === "livre";
@@ -413,8 +428,9 @@
         item.className = "day " + statusKey;
         var label = statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1);
         var hoursText = livre ? (disponiveis.length ? disponiveis.join(", ") : "Sem horários disponíveis") : "";
+        var diaLabel = DIAS_SEMANA[x.data.getDay()] + ", " + d.dia.slice(0,5);
         item.innerHTML =
-          '<span class="day-name">' + d.dia + '</span>' +
+          '<span class="day-name">' + diaLabel + '</span>' +
           '<span class="day-status">' + label + '</span>' +
           (livre ? '<span class="day-hours">' + hoursText + '</span>' : "") +
           (d.nota ? '<span class="day-note">' + d.nota + '</span>' : "") +
@@ -457,7 +473,6 @@
       }
       slotsWrap.appendChild(slot);
     });
-    document.getElementById("modal-nome").value = "";
     document.getElementById("reserva-modal").classList.add("show");
   }
 
@@ -466,8 +481,6 @@
   });
 
   document.getElementById("modal-confirmar").addEventListener('click', function(){
-    var nome = document.getElementById("modal-nome").value.trim();
-    if (!nome){ alert("Digita seu nome pra continuar."); return; }
     if (!slotsSelecionados.length){ alert("Escolhe pelo menos um horário."); return; }
     if (!window.FORMS_URL){
       alert("O formulário de reserva ainda não foi configurado.");
@@ -475,7 +488,6 @@
     }
     var horarioTexto = diaAtual + " - " + slotsSelecionados.join(", ");
     var url = window.FORMS_URL + "?usp=pp_url"
-      + "&" + window.FORMS_ENTRY_NOME + "=" + encodeURIComponent(nome)
       + "&" + window.FORMS_ENTRY_HORARIO + "=" + encodeURIComponent(horarioTexto);
     window.open(url, "_blank");
     document.getElementById("reserva-modal").classList.remove("show");
